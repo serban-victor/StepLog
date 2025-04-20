@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_home"
+        android:icon="@drawable/home_icon"
+        android:title="Home"/>
+    <item
+        android:id="@+id/nav_timer"
+        android:icon="@drawable/timer_icon"
+        android:title="Cronometru"/>
+    <item
+        android:id="@+id/nav_user"
+        android:icon="@drawable/user_icon"
+        android:title="Profil"/>
+    <item
+        android:id="@+id/nav_calendar"
+        android:icon="@drawable/calendar_icon"
+        android:title="Calendar"/>
+    <item
+        android:id="@+id/nav_settings"
+        android:icon="@drawable/settings_icon"
+        android:title="Setări"/>
+</menu>
