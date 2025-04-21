@@ -44,10 +44,10 @@
             android:padding="16dp">
 
             <TextView
-                android:id="@+id/textView2"
+                android:id="@+id/tvSteps"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Steps: "
+                android:text="Steps: 0"
                 android:textColor="@color/material_dynamic_secondary60"
                 android:textSize="24dp"
                 android:textStyle="bold"
@@ -55,29 +55,29 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
-                android:id="@+id/textView3"
+                android:id="@+id/tvDistance"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:text="Distance: "
+                android:text="Distance: 0"
                 android:textColor="@color/material_dynamic_secondary60"
                 android:textSize="24dp"
                 android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/textView2" />
+                app:layout_constraintTop_toBottomOf="@+id/tvSteps" />
 
             <TextView
-                android:id="@+id/textView4"
+                android:id="@+id/tvCalories"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:text="Calories: "
+                android:text="Calories: 0"
                 android:textColor="@color/material_dynamic_secondary60"
                 android:textSize="24dp"
                 android:textStyle="bold"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/textView3" />
+                app:layout_constraintTop_toBottomOf="@+id/tvDistance" />
 
            <!-- <com.google.android.material.progressindicator.CircularProgressIndicator
                 android:id="@+id/progressSteps"
