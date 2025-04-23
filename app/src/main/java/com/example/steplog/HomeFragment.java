@@ -29,6 +29,20 @@ public class HomeFragment extends Fragment {
         return view;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        if (getActivity() != null) {
+            int savedSteps = getActivity()
+                    .getSharedPreferences("StepLogPrefs", getActivity().MODE_PRIVATE)
+                    .getInt("total_steps", 0);
+
+            updateStepData(savedSteps);
+        }
+    }
+
+
     public void updateStepData(int steps) {
         if (getActivity() == null) return;
 
