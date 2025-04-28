@@ -43,6 +43,22 @@
             android:orientation="vertical"
             android:padding="16dp">
 
+            <ProgressBar
+                android:id="@+id/progressBarSteps"
+                style="@android:style/Widget.ProgressBar.Horizontal"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="56dp"
+                android:layout_marginEnd="16dp"
+                android:max="6000"
+                android:progress="0"
+                android:progressTint="@color/material_dynamic_secondary60"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tvSteps" />
+
             <TextView
                 android:id="@+id/tvSteps"
                 android:layout_width="wrap_content"
