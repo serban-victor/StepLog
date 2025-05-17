@@ -32,7 +32,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private SensorManager sensorManager;
     private Sensor stepSensor;
     private int totalSteps = 0;
-    private AppDatabase db;
+    // private AppDatabase db; // Database instance is managed by ViewModel/AppDatabase singleton
     private SharedViewModel sharedViewModel;
 
     private BottomNavigationView bottomNavigationView;
@@ -47,17 +47,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        db = androidx.room.Room.databaseBuilder(
-                getApplicationContext(),
-                AppDatabase.class,
-                "step_log_db"
-        ).allowMainThreadQueries().build();
+        // db = AppDatabase.getInstance(getApplicationContext()); // Get instance via AppDatabase.getInstance()
 
         sharedViewModel = new ViewModelProvider(this).get(SharedViewModel.class);
 
         bottomNavigationView = findViewById(R.id.bottom_nav_menu);
 
-        // Schimbă fragmentul inițial pe care îl dorim (homeFragment)
         setCurrentFragment(homeFragment);
 
         bottomNavigationView.setOnItemSelectedListener(item -> {
@@ -79,22 +74,26 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         requestPermissionsIfNeeded();
         initializeSensor();
 
-        SharedPreferences prefs = getSharedPreferences("StepLogPrefs", MODE_PRIVATE);
+        // Load initial step count from SharedPreferences and update ViewModel
+        // This ensures ViewModel is the source of truth for UI components like HomeFragment
+        SharedPreferences prefs = getSharedPreferences(SettingsFragment.PREFS_NAME, MODE_PRIVATE);
         String todayDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new java.util.Date());
         String savedDate = prefs.getString("last_date", todayDate);
 
         if (!todayDate.equals(savedDate)) {
             totalSteps = 0;
+            // Persist the reset for the new day immediately
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putInt("total_steps", 0);
+            editor.putString("last_date", todayDate);
+            editor.apply();
         } else {
             totalSteps = prefs.getInt("total_steps", 0);
         }
-        
-        Log.d("StepLog", "Pași încărcați: " + totalSteps);
-
-        // Actualizează HomeFragment cu pașii încărcați
-        if (homeFragment instanceof HomeFragment) {
-            ((HomeFragment) homeFragment).updateStepData(totalSteps);
-        }
+        Log.d("StepLog_Main", "Initial totalSteps loaded: " + totalSteps + " for date: " + todayDate);
+        // Update the ViewModel with the steps loaded/reset from SharedPreferences.
+        // HomeFragment will observe this from the ViewModel.
+        sharedViewModel.setSteps(totalSteps, todayDate);
 
         startStepService();
     }
@@ -102,45 +101,44 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     protected void onResume() {
         super.onResume();
-        checkIfNewDay();
+        checkIfNewDay(); // This updates totalSteps if it's a new day
         if (stepSensor != null) {
             sensorManager.registerListener(this, stepSensor, SensorManager.SENSOR_DELAY_UI);
         }
+        // Ensure ViewModel reflects the current state, especially after checkIfNewDay might have reset totalSteps
+        String todayDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new java.util.Date());
+        sharedViewModel.setSteps(totalSteps, todayDate);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        sensorManager.unregisterListener(this);
+        if (sensorManager != null) {
+            sensorManager.unregisterListener(this);
+        }
     }
 
     @Override
     public void onSensorChanged(SensorEvent event) {
         if (event.sensor.getType() == Sensor.TYPE_STEP_DETECTOR) {
-            checkIfNewDay();
-            totalSteps += event.values.length;
-            Log.d("StepLog", "Pas detectat. Total: " + totalSteps);
+            checkIfNewDay(); // Ensure totalSteps is correct for the current day
+            totalSteps += event.values.length; // Increment steps
+            Log.d("StepLog_Main", "Step detected. Current totalSteps: " + totalSteps);
 
-            // Salvează totalul pașilor în SharedPreferences
-            SharedPreferences prefs = getSharedPreferences("StepLogPrefs", MODE_PRIVATE);
+            SharedPreferences prefs = getSharedPreferences(SettingsFragment.PREFS_NAME, MODE_PRIVATE);
             SharedPreferences.Editor editor = prefs.edit();
             editor.putInt("total_steps", totalSteps);
+            // editor.putString("last_date", new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new java.util.Date())); // last_date updated in checkIfNewDay
             editor.apply();
 
-            // Actualizează pașii în ViewModel și baza de date
             String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new java.util.Date());
-            sharedViewModel.setSteps(totalSteps, date);
-
-            // Actualizează HomeFragment
-            if (homeFragment instanceof HomeFragment) {
-                ((HomeFragment) homeFragment).updateStepData(totalSteps);
-            }
+            sharedViewModel.setSteps(totalSteps, date); // Update ViewModel, which updates DB and LiveData for HomeFragment
         }
     }
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
-        // Nu avem nevoie acum
+        // Not used
     }
 
     private void setCurrentFragment(Fragment fragment) {
@@ -152,12 +150,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     private void initializeSensor() {
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR);
+        if (sensorManager != null) {
+            stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR);
+        }
 
         if (stepSensor == null) {
             Toast.makeText(this, "Step detector sensor not available", Toast.LENGTH_LONG).show();
         } else {
-            Toast.makeText(this, "Step detector sensor initialized", Toast.LENGTH_SHORT).show();
+            // Toast.makeText(this, "Step detector sensor initialized", Toast.LENGTH_SHORT).show(); // Optional: can be noisy
         }
     }
 
@@ -166,7 +166,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             permissions = new String[]{
                     Manifest.permission.ACTIVITY_RECOGNITION,
-                    Manifest.permission.FOREGROUND_SERVICE
+                    Manifest.permission.POST_NOTIFICATIONS // For StepService foreground notification
             };
         } else {
             permissions = new String[]{
@@ -174,30 +174,64 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             };
         }
 
-        if (ContextCompat.checkSelfPermission(this, permissions[0]) != PackageManager.PERMISSION_GRANTED) {
+        boolean allPermissionsGranted = true;
+        for (String permission : permissions) {
+            if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+                allPermissionsGranted = false;
+                break;
+            }
+        }
+
+        if (!allPermissionsGranted) {
             ActivityCompat.requestPermissions(this, permissions, PERMISSION_REQUEST_CODE);
         }
     }
 
     private void checkIfNewDay() {
-        SharedPreferences prefs = getSharedPreferences("StepLogPrefs", MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences(SettingsFragment.PREFS_NAME, MODE_PRIVATE);
         String lastSavedDate = prefs.getString("last_date", "");
         String todayDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new java.util.Date());
 
         if (!todayDate.equals(lastSavedDate)) {
-            // Nouă zi detectată, resetăm pașii
+            Log.d("StepLog_Main", "New day detected! Resetting steps. Old date: " + lastSavedDate + ", New date: " + todayDate);
             totalSteps = 0;
             SharedPreferences.Editor editor = prefs.edit();
             editor.putInt("total_steps", 0);
             editor.putString("last_date", todayDate);
             editor.apply();
-            Log.d("StepLog", "Nouă zi detectată! Pașii au fost resetați.");
+            // Update ViewModel with reset steps for the new day
+            sharedViewModel.setSteps(0, todayDate);
         }
     }
 
     private void startStepService() {
         Intent serviceIntent = new Intent(this, StepService.class);
-        startService(serviceIntent);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(serviceIntent);
+        } else {
+            startService(serviceIntent);
+        }
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            boolean allGranted = true;
+            for (int grantResult : grantResults) {
+                if (grantResult != PackageManager.PERMISSION_GRANTED) {
+                    allGranted = false;
+                    break;
+                }
+            }
+            if (allGranted) {
+                Toast.makeText(this, "Permissions granted!", Toast.LENGTH_SHORT).show();
+                initializeSensor(); // Re-initialize or ensure sensor is active
+                startStepService(); // Start service if permissions now granted
+            } else {
+                Toast.makeText(this, "Activity recognition permission is required for step tracking.", Toast.LENGTH_LONG).show();
+            }
+        }
+    }
 }
+

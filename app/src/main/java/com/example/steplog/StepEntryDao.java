@@ -20,4 +20,12 @@ public interface StepEntryDao {
 
     @Update
     void update(StepEntry entry); // Metoda pentru actualizarea intrării existente
+
+    // New query to get steps for the last 7 days for the graph
+    @Query("SELECT * FROM step_entries WHERE date >= :startDate ORDER BY date ASC LIMIT 7")
+    List<StepEntry> getEntriesForLastSevenDays(String startDate);
+
+    @Query("DELETE FROM step_entries")
+    void deleteAllEntries(); // Added for data reset functionality
 }
+

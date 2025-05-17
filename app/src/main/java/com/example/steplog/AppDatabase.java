@@ -7,11 +7,12 @@ import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
-@Database(entities = {StepEntry.class}, version = 1)
+@Database(entities = {StepEntry.class, TimedSessionEntry.class}, version = 2) // Added TimedSessionEntry and incremented version
 public abstract class AppDatabase extends RoomDatabase {
     private static volatile AppDatabase INSTANCE;
 
     public abstract StepEntryDao stepEntryDao();
+    public abstract TimedSessionEntryDao timedSessionEntryDao(); // Added DAO for TimedSessionEntry
 
     public static AppDatabase getInstance(Context context) {
         if (INSTANCE == null) {
@@ -30,3 +31,4 @@ public abstract class AppDatabase extends RoomDatabase {
         return INSTANCE;
     }
 }
+

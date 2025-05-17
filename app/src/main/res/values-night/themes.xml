@@ -2,6 +2,12 @@
     <!-- Base application theme. -->
     <style name="Base.Theme.StepLog" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your dark theme here. -->
-        <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+        <item name="colorPrimary">@color/colorPrimary</item> <!-- Or a dark variant if specified -->
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item> <!-- Or a darker variant -->
+        <item name="colorAccent">@color/colorAccent</item> <!-- Or a dark variant -->
+        
+        <!-- Assuming original used white text on black background for dark mode -->
+        <item name="android:textColor">@color/white</item> 
+        <item name="android:windowBackground">@color/black</item>
     </style>
 </resources>
