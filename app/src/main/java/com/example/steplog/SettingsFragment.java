@@ -84,7 +84,7 @@ public class SettingsFragment extends Fragment {
             rgTheme.check(R.id.rbThemeSystem);
         }
 
-        // Notifications
+        // Notificari
         boolean notificationsEnabled = prefs.getBoolean(KEY_NOTIFICATIONS_ENABLED, true);
         switchNotifications.setChecked(notificationsEnabled);
 
@@ -125,7 +125,6 @@ public class SettingsFragment extends Fragment {
         SharedPreferences.Editor editor = prefs.edit();
         editor.putBoolean(KEY_NOTIFICATIONS_ENABLED, isChecked);
         editor.apply();
-        // Logic to enable/disable actual notifications would be in StepService or MainActivity
         Toast.makeText(getContext(), "Notification preference saved.", Toast.LENGTH_SHORT).show();
     }
 
@@ -181,11 +180,11 @@ public class SettingsFragment extends Fragment {
         editor.remove(UserFragment.KEY_WEIGHT);
         editor.remove(UserFragment.KEY_AGE);
         editor.remove(UserFragment.KEY_GENDER);
-        editor.remove(KEY_NOTIFICATIONS_ENABLED); // Or set to default
-        editor.remove(KEY_UNITS); // Or set to default
-        editor.remove(KEY_STEP_GOAL); // Or set to default
-        editor.remove("total_steps"); // From MainActivity/StepService
-        editor.remove("last_date");   // From MainActivity/StepService
+        editor.remove(KEY_NOTIFICATIONS_ENABLED);
+        editor.remove(KEY_UNITS);
+        editor.remove(KEY_STEP_GOAL);
+        editor.remove("total_steps");
+        editor.remove("last_date");
         editor.apply();
 
         // Clear Database
@@ -197,9 +196,7 @@ public class SettingsFragment extends Fragment {
             if (getActivity() != null) {
                 getActivity().runOnUiThread(() -> {
                     Toast.makeText(getContext(), "All data has been reset.", Toast.LENGTH_LONG).show();
-                    // Reload settings to reflect defaults
                     loadSettings();
-                    // Potentially navigate user or refresh other parts of the app
                 });
             }
         }).start();

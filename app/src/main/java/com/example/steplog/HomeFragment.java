@@ -63,14 +63,12 @@ public class HomeFragment extends Fragment {
 
         sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedViewModel.class);
 
-        // Observe LiveData for the full current day StepEntry
         sharedViewModel.getCurrentDayEntry().observe(getViewLifecycleOwner(), entry -> {
             if (entry != null) {
                 updateStepDataDisplay(entry);
             }
         });
 
-        // Observe LiveData for weekly step data
         sharedViewModel.getWeeklySteps().observe(getViewLifecycleOwner(), weeklyEntries -> {
             if (weeklyEntries != null) {
                 updateWeeklyGraph(weeklyEntries);
@@ -103,7 +101,7 @@ public class HomeFragment extends Fragment {
 
         tvSteps.setText(String.format(Locale.getDefault(), "Steps: %d", entry.steps));
 
-        double distanceToDisplay = entry.distance; // This is in KM from ViewModel
+        double distanceToDisplay = entry.distance;
         String distanceUnit = "km";
         if ("imperial".equals(currentUnitSystem)) {
             distanceToDisplay = entry.distance * SharedViewModel.MILES_PER_KM;
@@ -111,7 +109,6 @@ public class HomeFragment extends Fragment {
         }
         tvDistance.setText(String.format(Locale.getDefault(), "Distance: %.2f %s", distanceToDisplay, distanceUnit));
 
-        // Calories are unit-agnostic (kcal)
         tvCalories.setText(String.format(Locale.getDefault(), "Calories: %.1f kcal", entry.calories));
 
         progressBarSteps.setProgress(Math.min(entry.steps, currentStepGoal));

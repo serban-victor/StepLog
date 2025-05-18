@@ -25,7 +25,7 @@ public class SharedViewModel extends AndroidViewModel {
     private AppDatabase db;
     private SharedPreferences prefs;
 
-    // Constants for unit conversion and calculation
+    // Constante
     private static final double METERS_PER_STEP_AVG = 0.78; // meters
     private static final double KM_PER_METER = 0.001;
     public static final double MILES_PER_KM = 0.621371;
@@ -106,7 +106,7 @@ public class SharedViewModel extends AndroidViewModel {
     }
 
 
-    // Calculates distance in KM
+    // Calculator distanta in KM
     public static double calculateDistanceKm(int steps, float userHeightCm) {
         double stepLengthMeters;
         if (userHeightCm > 0) {
@@ -117,7 +117,7 @@ public class SharedViewModel extends AndroidViewModel {
         return (steps * stepLengthMeters) * KM_PER_METER;
     }
 
-    // Calculates calories in KCAL
+    // Calculatoo calorii
     public static double calculateCaloriesKcal(int steps, float userWeightKg) {
         double caloriesKcal;
         if (userWeightKg > 0) {
@@ -137,7 +137,7 @@ public class SharedViewModel extends AndroidViewModel {
 
         Log.d("StepLog_ViewModel", "setSteps: Date=" + date + ", Steps=" + steps + ", DistKM=" + distanceKm + ", CalKCAL=" + caloriesKcal);
 
-        stepsLiveData.setValue(steps); // Update raw steps
+        stepsLiveData.setValue(steps);
 
         new Thread(() -> {
             StepEntry entry = db.stepEntryDao().getEntryByDate(date);
@@ -154,7 +154,7 @@ public class SharedViewModel extends AndroidViewModel {
                 entryToPost = entry;
                 Log.d("StepLog_ViewModel", "Entry updated for " + date);
             }
-            currentDayEntryLiveData.postValue(entryToPost); // Post the full entry
+            currentDayEntryLiveData.postValue(entryToPost);
             loadWeeklyStepsInBackground(); // Refresh weekly graph data
         }).start();
     }
@@ -167,8 +167,7 @@ public class SharedViewModel extends AndroidViewModel {
                 currentDayEntryLiveData.postValue(entry);
             } else {
                 stepsLiveData.postValue(0);
-                // Post a default or null entry if no data for the day
-                currentDayEntryLiveData.postValue(new StepEntry(date, 0, 0, 0)); // Or null, depending on how HomeFragment handles it
+                currentDayEntryLiveData.postValue(new StepEntry(date, 0, 0, 0));
             }
         }).start();
     }

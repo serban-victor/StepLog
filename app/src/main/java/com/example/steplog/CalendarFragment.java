@@ -24,7 +24,7 @@ public class CalendarFragment extends Fragment {
     private TextView tvSelectedDateSteps, tvSelectedDateDistance, tvSelectedDateCalories, tvNoSessions;
     private LinearLayout llTimedSessionsContainer;
     private AppDatabase db;
-    private String selectedDateString; // To store the currently selected date as YYYY-MM-DD
+    private String selectedDateString;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -44,7 +44,7 @@ public class CalendarFragment extends Fragment {
         llTimedSessionsContainer = view.findViewById(R.id.llTimedSessionsContainer);
         tvNoSessions = view.findViewById(R.id.tvNoSessions);
 
-        // Initialize with today's date
+
         selectedDateString = getFormattedDate(calendarView.getDate());
         loadDataForSelectedDate(selectedDateString);
 
@@ -60,7 +60,7 @@ public class CalendarFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        // Refresh data if a date was previously selected
+
         if (selectedDateString != null) {
             loadDataForSelectedDate(selectedDateString);
         }
@@ -68,10 +68,10 @@ public class CalendarFragment extends Fragment {
 
     private void loadDataForSelectedDate(String date) {
         new Thread(() -> {
-            // Load daily step entry
+            // daily step entry
             StepEntry dailyEntry = db.stepEntryDao().getEntryByDate(date);
 
-            // Load timed sessions for the date
+            // timed sessions
             List<TimedSessionEntry> sessions = db.timedSessionEntryDao().getSessionsByDate(date);
 
             Log.d("CalendarFragment", "Sessions count: " + (sessions != null ? sessions.size() : 0));
@@ -96,7 +96,6 @@ public class CalendarFragment extends Fragment {
                         tvNoSessions.setVisibility(View.GONE);
                         llTimedSessionsContainer.setVisibility(View.VISIBLE);
 
-                        // Clear previous views
                         llTimedSessionsContainer.removeAllViews();
 
                         // Add each session manually
@@ -110,7 +109,7 @@ public class CalendarFragment extends Fragment {
                             TextView tvSessionDistance = sessionView.findViewById(R.id.tvItemSessionDistance);
                             TextView tvSessionCalories = sessionView.findViewById(R.id.tvItemSessionCalories);
 
-                            // Format and set data
+
                             SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
                             String startTimeFormatted = timeFormat.format(new Date(session.startTime));
                             tvSessionStartTime.setText(String.format(Locale.getDefault(), "Started at: %s", startTimeFormatted));

@@ -47,8 +47,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // db = AppDatabase.getInstance(getApplicationContext()); // Get instance via AppDatabase.getInstance()
-
         sharedViewModel = new ViewModelProvider(this).get(SharedViewModel.class);
 
         bottomNavigationView = findViewById(R.id.bottom_nav_menu);
@@ -74,8 +72,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         requestPermissionsIfNeeded();
         initializeSensor();
 
-        // Load initial step count from SharedPreferences and update ViewModel
-        // This ensures ViewModel is the source of truth for UI components like HomeFragment
         SharedPreferences prefs = getSharedPreferences(SettingsFragment.PREFS_NAME, MODE_PRIVATE);
         String todayDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new java.util.Date());
         String savedDate = prefs.getString("last_date", todayDate);
@@ -91,8 +87,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             totalSteps = prefs.getInt("total_steps", 0);
         }
         Log.d("StepLog_Main", "Initial totalSteps loaded: " + totalSteps + " for date: " + todayDate);
-        // Update the ViewModel with the steps loaded/reset from SharedPreferences.
-        // HomeFragment will observe this from the ViewModel.
+
         sharedViewModel.setSteps(totalSteps, todayDate);
 
         startStepService();
@@ -101,11 +96,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     protected void onResume() {
         super.onResume();
-        checkIfNewDay(); // This updates totalSteps if it's a new day
+        checkIfNewDay(); // Actualizare daca e zi noua
         if (stepSensor != null) {
             sensorManager.registerListener(this, stepSensor, SensorManager.SENSOR_DELAY_UI);
         }
-        // Ensure ViewModel reflects the current state, especially after checkIfNewDay might have reset totalSteps
         String todayDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new java.util.Date());
         sharedViewModel.setSteps(totalSteps, todayDate);
     }
@@ -121,18 +115,17 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     public void onSensorChanged(SensorEvent event) {
         if (event.sensor.getType() == Sensor.TYPE_STEP_DETECTOR) {
-            checkIfNewDay(); // Ensure totalSteps is correct for the current day
+            checkIfNewDay();
             totalSteps += event.values.length; // Increment steps
             Log.d("StepLog_Main", "Step detected. Current totalSteps: " + totalSteps);
 
             SharedPreferences prefs = getSharedPreferences(SettingsFragment.PREFS_NAME, MODE_PRIVATE);
             SharedPreferences.Editor editor = prefs.edit();
             editor.putInt("total_steps", totalSteps);
-            // editor.putString("last_date", new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new java.util.Date())); // last_date updated in checkIfNewDay
             editor.apply();
 
             String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new java.util.Date());
-            sharedViewModel.setSteps(totalSteps, date); // Update ViewModel, which updates DB and LiveData for HomeFragment
+            sharedViewModel.setSteps(totalSteps, date);
         }
     }
 
@@ -157,7 +150,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         if (stepSensor == null) {
             Toast.makeText(this, "Step detector sensor not available", Toast.LENGTH_LONG).show();
         } else {
-            // Toast.makeText(this, "Step detector sensor initialized", Toast.LENGTH_SHORT).show(); // Optional: can be noisy
         }
     }
 
@@ -166,7 +158,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             permissions = new String[]{
                     Manifest.permission.ACTIVITY_RECOGNITION,
-                    Manifest.permission.POST_NOTIFICATIONS // For StepService foreground notification
+                    Manifest.permission.POST_NOTIFICATIONS // Notificare foreground stepservice
             };
         } else {
             permissions = new String[]{
@@ -226,8 +218,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
             if (allGranted) {
                 Toast.makeText(this, "Permissions granted!", Toast.LENGTH_SHORT).show();
-                initializeSensor(); // Re-initialize or ensure sensor is active
-                startStepService(); // Start service if permissions now granted
+                initializeSensor();
+                startStepService();
             } else {
                 Toast.makeText(this, "Activity recognition permission is required for step tracking.", Toast.LENGTH_LONG).show();
             }

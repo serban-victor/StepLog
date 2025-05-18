@@ -89,9 +89,7 @@ public class TimerFragment extends Fragment implements SensorEventListener {
             } else {
                 btnStartStopTimer.setText("Start");
                 chronometerTimer.stop();
-                // Set base to current elapsed time when stopped and not reset, so it shows the last duration
                 if (sharedViewModel.getChronometerBaseTime().getValue() != null && sharedViewModel.getTimedStepCount().getValue() != null && sharedViewModel.getTimedStepCount().getValue() > 0) {
-                     // If there was a session, keep its time, otherwise reset chronometer display
                 } else {
                     chronometerTimer.setBase(SystemClock.elapsedRealtime());
                 }
@@ -99,11 +97,11 @@ public class TimerFragment extends Fragment implements SensorEventListener {
                     sensorManager.unregisterListener(this, stepDetectorSensor);
                 }
             }
-            updateUI(); // Update text fields based on possibly restored step count
+            updateUI();
         });
 
         sharedViewModel.getTimedStepCount().observe(getViewLifecycleOwner(), steps -> {
-            updateUI(); // This will recalculate distance and calories
+            updateUI();
         });
 
         sharedViewModel.getChronometerBaseTime().observe(getViewLifecycleOwner(), baseTime -> {
@@ -138,8 +136,7 @@ public class TimerFragment extends Fragment implements SensorEventListener {
         long sessionStartTime = sharedViewModel.getSessionStartTimeMillis().getValue() != null ? sharedViewModel.getSessionStartTimeMillis().getValue() : 0;
         long sessionEndTimeMillis = System.currentTimeMillis();
         long durationMillis = (sessionStartTime > 0) ? (sessionEndTimeMillis - sessionStartTime) : 0;
-        
-        // If chronometer was running, its base is the start, current elapsedRealtime - base is duration
+
         Long base = sharedViewModel.getChronometerBaseTime().getValue();
         if (base != null && base < SystemClock.elapsedRealtime()) {
             durationMillis = SystemClock.elapsedRealtime() - base;
@@ -148,9 +145,9 @@ public class TimerFragment extends Fragment implements SensorEventListener {
         final long finalDurationMillis = durationMillis;
         final int finalTimedStepCount = sharedViewModel.getTimedStepCount().getValue() != null ? sharedViewModel.getTimedStepCount().getValue() : 0;
 
-        if (finalTimedStepCount == 0 && finalDurationMillis < 1000) { // Avoid saving empty/too short sessions
+        if (finalTimedStepCount == 0 && finalDurationMillis < 1000) {
             Log.d("TimerFragment", "Timed session too short or no steps, not saving.");
-            sharedViewModel.resetTimerState(); // Reset UI and state in ViewModel
+            sharedViewModel.resetTimerState();
             Toast.makeText(getContext(), "Session too short, not saved.", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -169,7 +166,7 @@ public class TimerFragment extends Fragment implements SensorEventListener {
 
         TimedSessionEntry sessionEntry = new TimedSessionEntry(
                 currentDate,
-                sessionStartTime > 0 ? sessionStartTime : (sessionEndTimeMillis - finalDurationMillis), // Estimate start if not set
+                sessionStartTime > 0 ? sessionStartTime : (sessionEndTimeMillis - finalDurationMillis),
                 sessionEndTimeMillis,
                 finalDurationMillis,
                 finalTimedStepCount,
@@ -183,7 +180,7 @@ public class TimerFragment extends Fragment implements SensorEventListener {
             if (getActivity() != null) {
                 getActivity().runOnUiThread(() -> {
                     Toast.makeText(getContext(), "Timed session saved!", Toast.LENGTH_SHORT).show();
-                    sharedViewModel.resetTimerState(); // Reset UI and state in ViewModel
+                    sharedViewModel.resetTimerState();
                 });
             }
         }).start();
@@ -219,7 +216,7 @@ public class TimerFragment extends Fragment implements SensorEventListener {
     public void onSensorChanged(SensorEvent event) {
         Boolean isRunning = sharedViewModel.getIsTimerRunning().getValue();
         if (isRunning != null && isRunning && event.sensor.getType() == Sensor.TYPE_STEP_DETECTOR) {
-            sharedViewModel.incrementTimedStepCount((int) event.values[0]); // event.values[0] is usually 1.0f for step detector
+            sharedViewModel.incrementTimedStepCount((int) event.values[0]);
             Log.d("TimerFragment", "Timed step detected. ViewModel steps: " + sharedViewModel.getTimedStepCount().getValue());
         }
     }
@@ -232,13 +229,11 @@ public class TimerFragment extends Fragment implements SensorEventListener {
     @Override
     public void onResume() {
         super.onResume();
-        // Re-observe or re-apply state if necessary, though LiveData should handle most of it.
-        // If sensor needs to be re-registered based on ViewModel state when fragment resumes:
         Boolean isRunning = sharedViewModel.getIsTimerRunning().getValue();
         if (isRunning != null && isRunning && stepDetectorSensor != null) {
             sensorManager.registerListener(this, stepDetectorSensor, SensorManager.SENSOR_DELAY_UI);
         }
-        updateUI(); // Ensure UI is current on resume
+        updateUI();
     }
 
     @Override

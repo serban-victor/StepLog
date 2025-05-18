@@ -84,7 +84,7 @@ public class UserFragment extends Fragment {
         SharedPreferences prefs = getContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
 
-        // Height
+
         if (!TextUtils.isEmpty(etHeight.getText())) {
             try {
                 float height = Float.parseFloat(etHeight.getText().toString());
@@ -101,7 +101,7 @@ public class UserFragment extends Fragment {
             editor.remove(KEY_HEIGHT);
         }
 
-        // Weight
+
         if (!TextUtils.isEmpty(etWeight.getText())) {
             try {
                 float weight = Float.parseFloat(etWeight.getText().toString());
@@ -118,7 +118,7 @@ public class UserFragment extends Fragment {
             editor.remove(KEY_WEIGHT);
         }
 
-        // Age
+
         if (!TextUtils.isEmpty(etAge.getText())) {
             try {
                 int age = Integer.parseInt(etAge.getText().toString());
@@ -135,7 +135,7 @@ public class UserFragment extends Fragment {
             editor.remove(KEY_AGE);
         }
 
-        // Gender
+
         int selectedGenderId = rgGender.getCheckedRadioButtonId();
         String genderValue = "Prefer not to say";
         if (selectedGenderId == R.id.rbMale) {

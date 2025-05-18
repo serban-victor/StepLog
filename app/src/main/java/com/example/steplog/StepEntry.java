@@ -8,9 +8,9 @@ public class StepEntry {
     @PrimaryKey(autoGenerate = true)
     public int id;
 
-    public String date; // Format: "yyyy-MM-dd"
+    public String date; // "yyyy-MM-dd"
     public int steps;
-    public double distance; // în kilometri
+    public double distance; // in kilometri
     public double calories; // kcal
 
     public StepEntry(String date, int steps, double distance, double calories) {

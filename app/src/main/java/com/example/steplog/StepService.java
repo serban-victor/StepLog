@@ -46,7 +46,7 @@ public class StepService extends Service implements SensorEventListener {
             }
         }
 
-        // Foreground notification
+        // Foreground notificare
         Notification notification = new NotificationCompat.Builder(this, "step_channel")
                 .setContentTitle("StepLog")
                 .setContentText("Monitorizează pașii în fundal")
@@ -55,7 +55,7 @@ public class StepService extends Service implements SensorEventListener {
                 .build();
         startForeground(1, notification);
 
-        // Get current date
+        // Data curenta
         String currentDate = getCurrentDateString();
 
         // Initialize sensor
@@ -66,9 +66,9 @@ public class StepService extends Service implements SensorEventListener {
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         String storedDate = prefs.getString(KEY_LAST_STEP_DATE, "");
 
-        // Check if date has changed or no date stored
+        // Verifica daca data s-a schimbat
         if (!currentDate.equals(storedDate)) {
-            // Reset counter for new day
+            // Reset pentru zi noua
             totalSteps = 0;
             SharedPreferences.Editor editor = prefs.edit();
             editor.putInt(KEY_TOTAL_STEPS, 0);
@@ -76,12 +76,12 @@ public class StepService extends Service implements SensorEventListener {
             editor.apply();
             Log.d(TAG, "New day detected. Reset step counter to 0.");
         } else {
-            // Same day, load existing count
+            // Daca e aceeasi zi citeste pasii din SharedPreferences
             totalSteps = prefs.getInt(KEY_TOTAL_STEPS, 0);
             Log.d(TAG, "Same day. Loaded existing step count: " + totalSteps);
         }
 
-        // Register sensor listener
+        // Sensor listener
         if (stepSensor != null) {
             sensorManager.registerListener(this, stepSensor, SensorManager.SENSOR_DELAY_UI);
         }
@@ -90,24 +90,24 @@ public class StepService extends Service implements SensorEventListener {
     @Override
     public void onSensorChanged(SensorEvent event) {
         if (event.sensor.getType() == Sensor.TYPE_STEP_DETECTOR) {
-            // Get current date
+            // Data curenta
             String currentDate = getCurrentDateString();
 
-            // Get stored preferences
+            // Stored preferences
             SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
             String storedDate = prefs.getString(KEY_LAST_STEP_DATE, "");
 
-            // Check if date has changed since last step
+            // Verifica daca data s-a schimbat de la ultimii pasi
             if (!currentDate.equals(storedDate)) {
-                // Reset counter for new day
+                // Reseteaza masuratoarea
                 totalSteps = 0;
                 Log.d(TAG, "Date changed during runtime. Reset step counter to 0.");
             }
 
-            // Increment step count
+            // Step counter
             totalSteps += event.values.length;
 
-            // Save updated count and current date
+            // Salveaza masuratoarea si data
             SharedPreferences.Editor editor = prefs.edit();
             editor.putInt(KEY_TOTAL_STEPS, totalSteps);
             editor.putString(KEY_LAST_STEP_DATE, currentDate);
